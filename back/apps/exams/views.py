@@ -21,7 +21,7 @@ class ExamViewSet(viewsets.ModelViewSet):
         serializer = ExamCreateSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
-            queryset = Question.objects.all()
+            queryset = Question.objects.filter(user=request.user)
 
             if data['question_type'] != 'mixed':
                 queryset = queryset.filter(type=data['question_type'])
@@ -76,7 +76,10 @@ class ExamViewSet(viewsets.ModelViewSet):
         serializer = SubmitAnswerSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                question = Question.objects.get(id=serializer.validated_data['question_id'])
+                question = Question.objects.get(
+                    id=serializer.validated_data['question_id'],
+                    user=request.user
+                )
             except Question.DoesNotExist:
                 return Response({'error': '题目不存在'}, status=status.HTTP_404_NOT_FOUND)
 
