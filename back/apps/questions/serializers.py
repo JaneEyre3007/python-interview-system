@@ -5,7 +5,7 @@ from .models import Question, Category
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'created_at']
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -23,6 +23,8 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class QuestionCreateSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
     class Meta:
         model = Question
-        fields = ['type', 'difficulty', 'category', 'content', 'options', 'answer', 'explanation']
+        fields = ['type', 'difficulty', 'category', 'content', 'options', 'answer', 'explanation', 'user']
