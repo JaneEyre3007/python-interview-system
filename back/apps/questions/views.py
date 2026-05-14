@@ -42,7 +42,9 @@ class QuestionViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        instance = serializer.save()
+        instance.user = self.request.user
+        instance.save(update_fields=['user'])
 
     @action(detail=False, methods=['get'])
     def random(self, request):
