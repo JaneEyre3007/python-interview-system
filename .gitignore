@@ -1,0 +1,23 @@
+# Dependencies
+front/node_modules/
+back/venv/
+back/__pycache__/
+back/*/__pycache__/
+back/*/*/__pycache__/
+
+# Environment
+back/.env
+
+# Database
+back/db.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.pyc
+
+# Build
+front/dist/
+
+# Logs
+*.log
