@@ -19,7 +19,8 @@ class QuestionSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         request = self.context.get('request')
         if request and request.user.is_staff:
-            self.Meta.fields = self.Meta.fields + ['answer', 'explanation']
+            self.fields['answer'] = serializers.CharField(read_only=True)
+            self.fields['explanation'] = serializers.CharField(read_only=True)
 
 
 class QuestionCreateSerializer(serializers.ModelSerializer):

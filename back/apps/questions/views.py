@@ -30,14 +30,11 @@ class QuestionViewSet(viewsets.ModelViewSet):
         queryset = Question.objects.filter(user=self.request.user)
         question_type = self.request.query_params.get('type')
         difficulty = self.request.query_params.get('difficulty')
-        category = self.request.query_params.get('category')
 
         if question_type:
             queryset = queryset.filter(type=question_type)
         if difficulty:
             queryset = queryset.filter(difficulty=difficulty)
-        if category:
-            queryset = queryset.filter(category_id=category)
 
         return queryset
 
