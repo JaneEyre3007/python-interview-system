@@ -44,6 +44,15 @@ class QuestionViewSet(viewsets.ModelViewSet):
         instance.save(update_fields=['user'])
 
     @action(detail=False, methods=['get'])
+    def debug(self, request):
+        return Response({
+            'my_questions': Question.objects.filter(user=request.user).count(),
+            'total_questions': Question.objects.count(),
+            'null_user': Question.objects.filter(user__isnull=True).count(),
+            'username': request.user.username,
+        })
+
+    @action(detail=False, methods=['get'])
     def random(self, request):
         count = int(request.query_params.get('count', 10))
         questions = Question.objects.filter(user=request.user).order_by('?')[:count]
