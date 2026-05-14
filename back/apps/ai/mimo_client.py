@@ -1,6 +1,9 @@
+import logging
 import requests
 import json
 from duckduckgo_search import DDGS
+
+logger = logging.getLogger(__name__)
 
 
 def search_questions(topic, question_type, difficulty, count=5):
@@ -18,7 +21,7 @@ def search_questions(topic, question_type, difficulty, count=5):
             results = list(ddgs.text(query, max_results=count * 2, region='cn-zh'))
             return results
     except Exception as e:
-        print(f"搜索失败: {e}")
+        logger.warning(f"搜索失败: {e}")
         return []
 
 
@@ -33,7 +36,7 @@ def save_token_usage(api_type, prompt_tokens, completion_tokens, user=None, mode
             model_name=model_name
         )
     except Exception as e:
-        print(f"保存Token记录失败: {e}")
+        logger.warning(f"保存Token记录失败: {e}")
 
 
 def get_user_ai_config(user):
@@ -70,10 +73,7 @@ class MiMoClient:
             response = requests.post(config['api_url'], headers=headers, json=payload, timeout=120)
 
             if response.status_code != 200:
-                print(f"API URL: {config['api_url']}")
-                print(f"Request payload: {json.dumps(payload, ensure_ascii=False)}")
-                print(f"Response status: {response.status_code}")
-                print(f"Response body: {response.text}")
+                logger.error(f"AI API返回非200状态码: {response.status_code}")
 
             response.raise_for_status()
             data = response.json()

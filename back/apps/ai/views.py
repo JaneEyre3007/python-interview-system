@@ -35,6 +35,7 @@ class GenerateQuestionView(APIView):
             if save_to_db:
                 for q_data in questions_data:
                     question = Question.objects.create(
+                        user=request.user,
                         type=question_type,
                         difficulty=difficulty,
                         content=q_data.get('content', ''),
@@ -92,7 +93,7 @@ class TokenUsageStatsView(APIView):
         days = int(request.query_params.get('days', 30))
         start_date = datetime.now() - timedelta(days=days)
 
-        records = TokenUsage.objects.filter(created_at__gte=start_date)
+        records = TokenUsage.objects.filter(user=request.user, created_at__gte=start_date)
 
         total_stats = records.aggregate(
             total_prompt=Sum('prompt_tokens'),

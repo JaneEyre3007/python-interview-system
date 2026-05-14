@@ -13,7 +13,13 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = '__all__'
+        fields = ['id', 'type', 'difficulty', 'category', 'category_name', 'content', 'options', 'created_at', 'updated_at']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and request.user.is_staff:
+            self.Meta.fields = self.Meta.fields + ['answer', 'explanation']
 
 
 class QuestionCreateSerializer(serializers.ModelSerializer):
