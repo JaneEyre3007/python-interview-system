@@ -1,3 +1,4 @@
+ARG CACHE_BUST=2
 # Stage 1: Build Vue.js frontend
 FROM node:18-alpine AS frontend-build
 WORKDIR /app/front
