@@ -8,7 +8,7 @@ class AnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Answer
-        fields = ['id', 'exam', 'question', 'question_content', 'user_answer', 'is_correct', 'score', 'ai_feedback', 'created_at', 'updated_at']
+        fields = ['id', 'exam', 'question', 'question_content', 'user_answer', 'is_correct', 'score', 'ai_feedback', 'created_at']
         read_only_fields = ['is_correct', 'score', 'ai_feedback']
 
 
@@ -26,7 +26,7 @@ class ExamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Exam
-        fields = ['id', 'user', 'title', 'difficulty', 'question_type', 'status', 'total_score', 'questions', 'answers', 'created_at', 'updated_at']
+        fields = ['id', 'user', 'title', 'status', 'total_score', 'questions', 'answers', 'started_at', 'finished_at', 'created_at']
         read_only_fields = ['user', 'total_score', 'status']
 
     def get_questions(self, obj):

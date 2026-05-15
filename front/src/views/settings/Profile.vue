@@ -40,14 +40,12 @@
 
     <!-- Logout -->
     <div class="p-6 rounded-xl" style="background: #FFFFFF; border: 1px solid #E5E7EB;">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium" style="color: #111827;">退出登录</p>
-          <p class="text-[11px] mt-0.5" style="color: #9CA3AF;">退出当前账户</p>
-        </div>
-        <n-button type="error" quaternary @click="handleLogout">退出</n-button>
-      </div>
+      <n-button type="error" block @click="handleLogout" class="!rounded-lg !font-semibold !h-10">
+        <template #icon><LogOutIcon class="w-4 h-4" /></template>
+        退出登录
+      </n-button>
     </div>
+
   </div>
 </template>
 
@@ -56,7 +54,7 @@ import { ref, reactive } from "vue"
 import { useRouter } from "vue-router"
 import { useAuthStore } from "@/stores/auth"
 import { useMessage } from "naive-ui"
-import { SettingsIcon, LockIcon } from "lucide-vue-next"
+import { SettingsIcon, LockIcon, LogOutIcon } from "lucide-vue-next"
 import api from "@/api"
 
 const router = useRouter()
