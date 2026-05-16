@@ -45,6 +45,7 @@
 import { ref, markRaw } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useAuthStore } from "@/stores/auth"
+import { useTokenRefresh } from "@/composables/useTokenRefresh"
 import {
   LayoutDashboardIcon,
   BookOpenIcon,
@@ -58,6 +59,7 @@ import {
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+useTokenRefresh()
 
 const menuOptions = [
   { label: "工作台", key: "dashboard", path: "/", icon: markRaw(LayoutDashboardIcon) },
