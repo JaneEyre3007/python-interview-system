@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
+from django.db.models import Q
 from .models import Exam, Answer, ExamQuestion
 from apps.questions.models import Question
 from .serializers import ExamSerializer, ExamCreateSerializer, SubmitAnswerSerializer, AnswerSerializer
@@ -21,7 +22,7 @@ class ExamViewSet(viewsets.ModelViewSet):
         serializer = ExamCreateSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
-            queryset = Question.objects.filter(user=request.user)
+            queryset = Question.objects.filter(Q(user=request.user) | Q(is_published=True))
 
             if data['question_type'] != 'mixed':
                 queryset = queryset.filter(type=data['question_type'])
@@ -77,8 +78,8 @@ class ExamViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             try:
                 question = Question.objects.get(
-                    id=serializer.validated_data['question_id'],
-                    user=request.user
+                    Q(id=serializer.validated_data['question_id']),
+                    Q(user=request.user) | Q(is_published=True)
                 )
             except Question.DoesNotExist:
                 return Response({'error': '题目不存在'}, status=status.HTTP_404_NOT_FOUND)

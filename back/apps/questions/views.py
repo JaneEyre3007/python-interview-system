@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import json
 import csv
@@ -27,21 +28,30 @@ class QuestionViewSet(viewsets.ModelViewSet):
         return QuestionSerializer
 
     def get_queryset(self):
-        queryset = Question.objects.filter(user=self.request.user)
+        if self.request.user.is_staff:
+            queryset = Question.objects.all()
+        else:
+            queryset = Question.objects.filter(
+                Q(user=self.request.user) | Q(is_published=True)
+            )
+
         question_type = self.request.query_params.get('type')
         difficulty = self.request.query_params.get('difficulty')
+        bank_name = self.request.query_params.get('bank_name')
 
         if question_type:
             queryset = queryset.filter(type=question_type)
         if difficulty:
             queryset = queryset.filter(difficulty=difficulty)
+        if bank_name:
+            queryset = queryset.filter(bank_name=bank_name)
 
         return queryset
 
     def perform_create(self, serializer):
-        instance = serializer.save()
-        instance.user = self.request.user
-        instance.save(update_fields=['user'])
+        is_staff = self.request.user.is_staff
+        is_published = serializer.validated_data.get('is_published', False) if is_staff else False
+        instance = serializer.save(user=self.request.user, is_published=is_published)
 
     @action(detail=False, methods=['get'])
     def debug(self, request):
@@ -50,12 +60,38 @@ class QuestionViewSet(viewsets.ModelViewSet):
             'total_questions': Question.objects.count(),
             'null_user': Question.objects.filter(user__isnull=True).count(),
             'username': request.user.username,
+            'is_staff': request.user.is_staff,
         })
+
+    @action(detail=False, methods=['get'])
+    def bank_names(self, request):
+        names = Question.objects.filter(
+            bank_name__gt=''
+        ).values_list('bank_name', flat=True).distinct().order_by('bank_name')
+        return Response(list(names))
+
+    @action(detail=True, methods=['post'])
+    def publish(self, request, pk=None):
+        if not request.user.is_staff:
+            return Response({'error': '仅管理员可操作'}, status=status.HTTP_403_FORBIDDEN)
+        question = self.get_object()
+        question.is_published = True
+        question.save(update_fields=['is_published'])
+        return Response(QuestionSerializer(question, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'])
+    def unpublish(self, request, pk=None):
+        if not request.user.is_staff:
+            return Response({'error': '仅管理员可操作'}, status=status.HTTP_403_FORBIDDEN)
+        question = self.get_object()
+        question.is_published = False
+        question.save(update_fields=['is_published'])
+        return Response(QuestionSerializer(question, context={'request': request}).data)
 
     @action(detail=False, methods=['get'])
     def random(self, request):
         count = int(request.query_params.get('count', 10))
-        questions = Question.objects.filter(user=request.user).order_by('?')[:count]
+        questions = self.get_queryset().order_by('?')[:count]
         serializer = self.get_serializer(questions, many=True)
         return Response(serializer.data)
 
@@ -65,7 +101,10 @@ class QuestionViewSet(viewsets.ModelViewSet):
         if not ids:
             return Response({'error': '请提供要删除的题目ID列表'}, status=status.HTTP_400_BAD_REQUEST)
 
-        deleted_count, _ = Question.objects.filter(user=request.user, id__in=ids).delete()
+        if request.user.is_staff:
+            deleted_count, _ = Question.objects.filter(id__in=ids).delete()
+        else:
+            deleted_count, _ = Question.objects.filter(user=request.user, id__in=ids).delete()
         return Response({'message': f'成功删除 {deleted_count} 道题目'})
 
     @action(detail=False, methods=['post'])
@@ -73,6 +112,8 @@ class QuestionViewSet(viewsets.ModelViewSet):
         file = request.FILES.get('file')
         if not file:
             return Response({'error': '请上传文件'}, status=status.HTTP_400_BAD_REQUEST)
+
+        bank_name = request.data.get('bank_name', '')
 
         file_name = file.name.lower()
         try:
@@ -101,6 +142,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
                     options=q_data.get('options', {}),
                     answer=q_data.get('answer', ''),
                     explanation=q_data.get('explanation', ''),
+                    bank_name=bank_name,
                     created_by_ai=False
                 )
                 created_count += 1
